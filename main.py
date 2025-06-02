@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from typing import List
 import requests
@@ -9,6 +10,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 
 app = FastAPI()
+
+# Allow frontend origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -26,7 +29,7 @@ app.add_middleware(
 JIKAN_API_BASE = 'https://api.jikan.moe/v4'
 
 class RecommendationRequest(BaseModel):
-    content_type: str 
+    content_type: str  # "anime" or "manga"
     titles: List[str]
     preferred_genres: List[int]
 
@@ -158,7 +161,9 @@ def recommend(req: RecommendationRequest):
 
     return {"recommendations": sanitize(recommendations)}
 
-# ✅ New ping route to keep backend alive
-@app.get("/ping")
-def ping():
-    return {"message": "pong"}
+# ✅ Fixed: /ping route that supports both GET and HEAD methods
+@app.api_route("/ping", methods=["GET", "HEAD"])
+def ping(request: Request):
+    if request.method == "HEAD":
+        return Response(status_code=200)
+    return JSONResponse(content={"message": "pong"})
