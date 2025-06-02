@@ -109,7 +109,6 @@ def recommend(req: RecommendationRequest):
     content_data = []
     user_ids = []
 
-    # Fetch detailed info for each user title
     for title in titles:
         info = fetch_data_by_title(title, content_type)
         if info:
@@ -128,7 +127,6 @@ def recommend(req: RecommendationRequest):
                 'image_url': info.get('images', {}).get('jpg', {}).get('image_url') if info.get('images') else None
             })
 
-    # Fetch additional content by genres to enlarge dataset
     additional = fetch_similar_by_genres(preferred_genres, content_type)
 
     for item in additional:
@@ -159,3 +157,8 @@ def recommend(req: RecommendationRequest):
     recommendations = get_recommendations(df, cosine_sim, 0, 5, user_ids)
 
     return {"recommendations": sanitize(recommendations)}
+
+# ✅ New ping route to keep backend alive
+@app.get("/ping")
+def ping():
+    return {"message": "pong"}
